@@ -1,4 +1,4 @@
-import { questions } from "./questions.mjs";
+import { questions, pickRandomQuestion } from "./questions.mjs";
 import { decodeBody, normalize } from "./util.mjs";
 import { replyToLine } from "./line.mjs";
 import { getUserState, putUserState } from "./state.mjs";
@@ -41,12 +41,13 @@ export const handler = async (event) => {
   const state = await getUserState(USER_STATE_TABLE, userId);
 
   if (state.mode === "idle" && normalize(text) === normalize("出題")) {
-    const q = questions[0];
+    const q = pickRandomQuestion(state.lastQuestionId);
 
     await putUserState(USER_STATE_TABLE, {
       userId,
       mode: "waitingAnswer",
       currentQuestionId: q.id,
+      lastQuestionId: q.id,
       askedAt: Date.now(),
     });
 

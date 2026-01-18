@@ -1,5 +1,5 @@
 import { questions, pickRandomQuestion } from "./questions.mjs";
-import { decodeBody, normalize } from "./util.mjs";
+import { decodeBody, normalize, normalizeEnglish  } from "./util.mjs";
 import { replyToLine } from "./line.mjs";
 import { getUserState, putUserState } from "./state.mjs";
 import { verifyLineSignature } from "./signature.mjs";
@@ -10,6 +10,23 @@ function isCorrect(input, q) {
   const n = normalize(input);
   if (n === normalize(q.answer)) return true;
   return (q.aliases || []).some((a) => n === normalize(a));
+}
+
+function isCorrectAnswer(input, q) {
+  const inN = normalizeEnglish(input);
+  const ansN = normalizeEnglish(q.answer);
+  const aliasNs = (q.aliases || []).map(normalizeEnglish);
+
+  if (inN === ansN) return true;
+  if (aliasNs.includes(inN)) return true;
+
+  // 正解フレーズで始まっていればOK（余計な語が続いても許容）
+  if (inN.startsWith(ansN + " ")) return true;
+  for (const a of aliasNs) {
+    if (inN.startsWith(a + " ")) return true;
+  }
+
+  return false;
 }
 
 export const handler = async (event) => {
@@ -70,7 +87,7 @@ export const handler = async (event) => {
       return { statusCode: 200, body: "ok" };
     }
 
-    const correct = isCorrect(text, q);
+    const correct = isCorrectAnswer(text, q);
 
     await putUserState(USER_STATE_TABLE, { userId, mode: "idle" });
 

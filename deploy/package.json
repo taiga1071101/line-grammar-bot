@@ -1,0 +1,22 @@
+{
+  "name": "grammar-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild src/index.mjs --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.mjs",
+    "zip": "powershell -Command \"Compress-Archive -Path dist/index.mjs -DestinationPath function.zip -Force\"",
+    "package": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Remove-Item -Recurse -Force deploy -ErrorAction SilentlyContinue; New-Item -ItemType Directory -Force deploy | Out-Null; Copy-Item src deploy\\src -Recurse -Force; Copy-Item node_modules deploy\\node_modules -Recurse -Force; Copy-Item package.json deploy\\package.json -Force; Compress-Archive -Path deploy\\* -DestinationPath function.zip -Force\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.971.0",
+    "@aws-sdk/lib-dynamodb": "^3.971.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.2"
+  }
+}

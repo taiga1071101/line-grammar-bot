@@ -1,0 +1,10 @@
+{
+    "version": "2.0",
+    "routeKey": "POST /webhook",
+    "rawPath": "/webhook",
+    "headers": { "content-type": "application/json" },
+    "requestContext": { "http": { "method": "POST", "path": "/webhook" } },
+    "isBase64Encoded": false,
+    "body": "{\"destination\":\"Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"events\":[{\"type\":\"message\",\"message\":{\"type\":\"text\",\"id\":\"1234567891\",\"text\":\"It will not be long before\"},\"timestamp\":1737168001000,\"source\":{\"type\":\"user\",\"userId\":\"Utestuser123\"},\"replyToken\":\"test-reply-token\",\"mode\":\"active\"}]}"
+  }
+  

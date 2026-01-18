@@ -1,0 +1,80 @@
+import { questions } from "./questions.mjs";
+import { decodeBody, normalize } from "./util.mjs";
+import { replyToLine } from "./line.mjs";
+import { getUserState, putUserState } from "./state.mjs";
+
+const USER_STATE_TABLE = process.env.USER_STATE_TABLE;
+
+function isCorrect(input, q) {
+  const n = normalize(input);
+  if (n === normalize(q.answer)) return true;
+  return (q.aliases || []).some((a) => n === normalize(a));
+}
+
+export const handler = async (event) => {
+  const raw = decodeBody(event);
+  const body = raw ? JSON.parse(raw) : null;
+
+  const lineEvent = body?.events?.[0];
+  const userId = lineEvent?.source?.userId;
+  const text = lineEvent?.message?.text;
+  const replyToken = lineEvent?.replyToken;
+
+  if (!userId) return { statusCode: 200, body: "ok" };
+
+  const state = await getUserState(USER_STATE_TABLE, userId);
+
+  if (state.mode === "idle" && normalize(text) === normalize("出題")) {
+    const q = questions[0];
+
+    await putUserState(USER_STATE_TABLE, {
+      userId,
+      mode: "waitingAnswer",
+      currentQuestionId: q.id,
+      askedAt: Date.now(),
+    });
+
+    await replyToLine(replyToken, [
+      `① 日本語\n${q.jp}`,
+      `② 英語（穴埋め）\n${q.blank}`,
+    ]);
+
+    return { statusCode: 200, body: "ok" };
+  }
+
+  // ★ここから採点：waitingAnswer のとき
+  if (state.mode === "waitingAnswer") {
+    const q = questions.find((x) => x.id === state.currentQuestionId);
+
+    if (!q) {
+      // 状態が壊れてた時の復旧
+      await putUserState(USER_STATE_TABLE, { userId, mode: "idle" });
+      await replyToLine(replyToken, ["状態がリセットされました。もう一度「出題」と送ってください。"]);
+      return { statusCode: 200, body: "ok" };
+    }
+
+    const correct = isCorrect(text, q);
+
+    await putUserState(USER_STATE_TABLE, { userId, mode: "idle" });
+
+    if (correct) {
+      await replyToLine(replyToken, [
+        "✅ 正解！",
+        `解答：${q.answer}`,
+        q.explain ? `解説：${q.explain}` : "",
+      ].filter(Boolean));
+    } else {
+      await replyToLine(replyToken, [
+        "❌ 不正解",
+        `あなたの回答：${text}`,
+        `正解：${q.answer}`,
+        q.explain ? `解説：${q.explain}` : "",
+      ].filter(Boolean));
+    }
+
+    return { statusCode: 200, body: "ok" };
+  }
+
+  await replyToLine(replyToken, ["「出題」と送ると問題を出します。"]);
+  return { statusCode: 200, body: "ok" };
+};

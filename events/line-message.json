@@ -1,0 +1,17 @@
+{
+    "version": "2.0",
+    "routeKey": "POST /webhook",
+    "rawPath": "/webhook",
+    "headers": {
+      "content-type": "application/json"
+    },
+    "requestContext": {
+      "http": {
+        "method": "POST",
+        "path": "/webhook"
+      }
+    },
+    "isBase64Encoded": false,
+    "body": "{\"destination\":\"Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"events\":[{\"type\":\"message\",\"message\":{\"type\":\"text\",\"id\":\"1234567890\",\"text\":\"出題\"},\"timestamp\":1737168000000,\"source\":{\"type\":\"user\",\"userId\":\"Utestuser123\"},\"replyToken\":\"test-reply-token\",\"mode\":\"active\"}]}"
+  }
+  

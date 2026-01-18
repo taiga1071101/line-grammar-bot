@@ -2,6 +2,7 @@ import { questions } from "./questions.mjs";
 import { decodeBody, normalize } from "./util.mjs";
 import { replyToLine } from "./line.mjs";
 import { getUserState, putUserState } from "./state.mjs";
+import { verifyLineSignature } from "./signature.mjs";
 
 const USER_STATE_TABLE = process.env.USER_STATE_TABLE;
 
@@ -12,7 +13,22 @@ function isCorrect(input, q) {
 }
 
 export const handler = async (event) => {
-  const raw = decodeBody(event);
+  console.log("A: start");
+
+  const raw = decodeBody(event); // 文字列（JSON）
+  const sig = event?.headers?.["x-line-signature"] || event?.headers?.["X-Line-Signature"];
+
+  // 署名検証（DRY_RUNのときはスキップしてもOK）
+  if (process.env.DRY_RUN !== "1") {
+    const ok = verifyLineSignature(process.env.CHANNEL_SECRET, raw, sig);
+    if (!ok) {
+      console.log("Invalid signature");
+      return { statusCode: 401, body: "invalid signature" };
+    }
+  }
+
+  console.log("B: signature ok");
+
   const body = raw ? JSON.parse(raw) : null;
 
   const lineEvent = body?.events?.[0];

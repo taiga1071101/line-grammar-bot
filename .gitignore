@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .env
+.env.*
 *.zip
 .DS_Store
 .local-user-state.json

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import fs from "node:fs";
 import { handler } from "../src/index.mjs";
 

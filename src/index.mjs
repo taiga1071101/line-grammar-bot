@@ -4,14 +4,17 @@ import { replyToLine } from "./line.mjs";
 import { getUserState, putUserState } from "./state.mjs";
 import { verifyLineSignature } from "./signature.mjs";
 
+/**
+ * 定数定義
+ */
 const USER_STATE_TABLE = process.env.USER_STATE_TABLE;
 
-function isCorrect(input, q) {
-  const n = normalize(input);
-  if (n === normalize(q.answer)) return true;
-  return (q.aliases || []).some((a) => n === normalize(a));
-}
-
+/**
+ * 回答を受け取り、正解かどうか判定する
+ * @param {*} input 
+ * @param {*} q 
+ * @returns 
+ */
 function isCorrectAnswer(input, q) {
   const inN = normalizeEnglish(input);
   const ansN = normalizeEnglish(q.answer);
@@ -29,8 +32,13 @@ function isCorrectAnswer(input, q) {
   return false;
 }
 
+/**
+ * メイン処理
+ * @param {*} event 
+ * @returns 
+ */
 export const handler = async (event) => {
-  console.log("A: start");
+  //console.log("A: start");
 
   const raw = decodeBody(event); // 文字列（JSON）
   const sig = event?.headers?.["x-line-signature"] || event?.headers?.["X-Line-Signature"];
@@ -69,8 +77,7 @@ export const handler = async (event) => {
     });
 
     await replyToLine(replyToken, [
-      `① 日本語\n${q.jp}`,
-      `② 英語（穴埋め）\n${q.blank}`,
+      `${q.jp} \n${q.blank}`,
     ]);
 
     return { statusCode: 200, body: "ok" };
